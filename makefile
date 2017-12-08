@@ -1,11 +1,11 @@
 all:
-	gcc -o sem sem.c
+	gcc -o control control.c
 
-run: all
-	./sem
+c: all
+	./control -c
 
-cvcr: all
-	./sem -c 4
-	./sem -v
-	./sem -c 3
-	./sem -r
+v: all
+	./control -v
+
+r: all
+	./control -r
