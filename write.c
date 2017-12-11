@@ -35,7 +35,7 @@ int main(){
   }
 
   	int *size = shmat(shmd, 0, 0);
-	
+
 	int fd = open(FILE, O_CREAT | O_TRUNC, 0644);
 	lseek(fd, *size * -1, SEEK_END);
 	char lastLine[*size];

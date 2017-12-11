@@ -23,7 +23,7 @@
 
 // helper for create flag; creates the semaphore if not already created
 void create() {
-  int sid = semget(KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0644);
+  int sid = semget(KEY, 1, IPC_CREAT | IPC_EXCL | 0644);
   int shmd = shmget(KEY, 128 * sizeof(char), IPC_CREAT | IPC_EXCL);
   perror("shmget");
 
@@ -32,21 +32,24 @@ void create() {
     printf("semaphore already created\n");
     return;
   }
-  if(shmd == -1){
-    printf("shared memory already created\n");
-    return;
-  }
+
+  semctl(sid, 0, SETVAL, 1);
   printf("semaphore created: %d\n", sid);
   printf("shared memory created: %d\n", shmd);
   printf("value set: %d\n", semctl(sid, 0, SETVAL, 1));
 
-  int fd = open(FILE, O_CREAT | O_TRUNC, 0644);
+  int fd = open(FILE, O_CREAT | O_TRUNC | O_EXCL, 0644);
   close(fd);
-  printf("file created\n");
+  printf("file created:%d\n", fd);
 }
 
 // helper for view flag; returns
 void view() {
+  if (semget(KEY, 1, 0)){
+    printf("initialize first\n");
+    return;
+  }
+
   char buf[128];
   printf("The Story:\n");
   // FILE * doesn't seem to work as an initializer and stderr isn't used
@@ -59,12 +62,12 @@ void view() {
 // helper for remove flag
 void rem() {
   // remove semaphore
-  int sid = semget(KEY, 4, 0600);
+  int sid = semget(KEY, 1, 0644);
   printf("semaphore removed: %d\n", semctl(sid, 0, IPC_RMID));
   // remove shared memory
-  int shmd = shmget(KEY, 4, 0600);
-
-  printf("shared memory removed: %d\n", shmctl(shmd, IPC_RMID, 0));
+  int shmd = shmget(KEY, 128 * sizeof(char), 0644);
+  int shm_val = shmctl(shmd, IPC_RMID, 0);
+  printf("shared memory removed\n");
   perror("shmctl");
   // remove file after showing it
   view();
