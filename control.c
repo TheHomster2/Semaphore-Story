@@ -25,6 +25,7 @@
 void create() {
   int sid = semget(KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0644);
   int shmd = shmget(KEY, 128 * sizeof(char), IPC_CREAT | IPC_EXCL);
+  perror("shmget");
 
   // check for error
   if(sid == -1){
@@ -48,25 +49,26 @@ void create() {
 void view() {
   char buf[128];
   printf("The Story:\n");
-  FILE * fp = fopen(FILE, "r");
-  while(fgets(buf, sizeof(buf), fp)){
+  // FILE * doesn't seem to work as an initializer and stderr isn't used
+  stderr = fopen(FILE, "r");
+  // loop through and print out each line
+  while(fgets(buf, sizeof(buf), stderr))
     printf("\t%s", buf);
-  }
 }
 
 // helper for remove flag
 void rem() {
+  // remove semaphore
   int sid = semget(KEY, 4, 0600);
-  printf("Semaphore removed: %d\n", semctl(sid, 0, IPC_RMID));
+  printf("semaphore removed: %d\n", semctl(sid, 0, IPC_RMID));
+  // remove shared memory
   int shmd = shmget(KEY, 4, 0600);
-  printf("Shared memory removed: %d\n", shmctl(shmd, IPC_RMID, 0));
-  char buf[256];
-  int fd = open(FILE, O_RDONLY);
-  read(fd, buf, 256);
-  printf("Story: %s\n", buf);
-  close(fd);
-  remove(FILE);
-  printf("Removed story\n");
+
+  printf("shared memory removed: %d\n", shmctl(shmd, IPC_RMID, 0));
+  perror("shmctl");
+  // remove file after showing it
+  view();
+  printf("Removed story: %d\n", remove(FILE));
 }
 
 
