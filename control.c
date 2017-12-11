@@ -47,7 +47,11 @@ void create() {
 // helper for view flag; returns
 void view() {
   int fd = open(FILE, O_RDONLY);
-
+  char buf[128];
+  printf("The Story:\n");
+  while(read(fd, buf, sizeof(*buf))){
+    printf("\t\t%s\n", buf);
+  }
 }
 
 // helper for remove flag
