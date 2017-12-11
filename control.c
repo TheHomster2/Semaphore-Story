@@ -46,11 +46,11 @@ void create() {
 
 // helper for view flag; returns
 void view() {
-  int fd = open(FILE, O_RDONLY);
   char buf[128];
   printf("The Story:\n");
-  while(read(fd, buf, sizeof(*buf))){
-    printf("\t\t%s\n", buf);
+  int * fp = fopen(FILE, "r");
+  while(fgets(buf, sizeof(buf), fp)){
+    printf("\t%s", buf);
   }
 }
 
@@ -61,6 +61,7 @@ void rem() {
   int shmd = shmget(KEY, 4, 0600);
   printf("Shared memory removed: %d\n", shmctl(shmd, IPC_RMID, 0));
   char buf[256];
+  int fd = open(FILE, O_RDONLY);
   read(fd, buf, 256);
   printf("Story: %s\n", buf);
   close(fd);
