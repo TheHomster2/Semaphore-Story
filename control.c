@@ -48,7 +48,7 @@ void create() {
 void view() {
   char buf[128];
   printf("The Story:\n");
-  int * fp = fopen(FILE, "r");
+  FILE * fp = fopen(FILE, "r");
   while(fgets(buf, sizeof(buf), fp)){
     printf("\t%s", buf);
   }
