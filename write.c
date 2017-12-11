@@ -37,6 +37,7 @@ int main(){
 
 	// shared memory stores last line
   char *line = (char *) shmat(shmd, 0, 0);
+	// perror("shmat");
 	int fd = open(FILE, O_CREAT | O_TRUNC, 0644);
 	// get new line
 	printf("Last line of the story: %s\n", line);

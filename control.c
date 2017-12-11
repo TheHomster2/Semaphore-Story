@@ -19,10 +19,9 @@
   HW 15 - Semaphone
   2017 - 12 - 11
 
-  below code is from charles' repo
+  below code is based on charles' repo
 
-  removing shared memory seems to return an error (errno: invalid arguments) and i'm not sure why it's doin it
-  everything else seems to work though
+  i figured it out after taking another look, when i was shmgetting the memory in rem(), i did indeed put in bad arguments and the size of the memory was wrong
 */
 
 // helper for create flag; creates the semaphore if not already created
@@ -36,13 +35,9 @@ void create() {
   }
 
   semctl(sid, 0, SETVAL, 1);
+  // perror("semctl");
   printf("semaphore created: %d\n", sid);
   int shmd = shmget(KEY, 128 * sizeof(char), IPC_CREAT | IPC_EXCL | 0644);
-  perror("shmget");
-  char* mem = shmat(shmd, 0, 0);
-  mem = "";
-  shmdt(mem);
-  perror("shmat");
   printf("shared memory created: %d\n", shmd);
   printf("value set: %d\n", semctl(sid, 0, SETVAL, 1));
 
@@ -78,10 +73,10 @@ void rem() {
       return;
   }
   printf("Semaphore removed: %d\n", sem_desc);
-  mem_desc = shmget(KEY, sizeof(int), 0);
-  int shm_val = shmctl(mem_desc, IPC_RMID, 0);
-  printf("Shared memory segment removed\n");
-  perror("shmctl");
+  mem_desc = shmget(KEY, 128 * sizeof(char), 0);
+  // perror("shmget");
+  printf("Shared memory segment removed: %d\n", shmctl(mem_desc, IPC_RMID, 0));
+  // perror("shmctl");
   // remove file after showing it
   char buf[128];
   printf("The Story:\n");
