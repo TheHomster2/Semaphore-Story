@@ -1,5 +1,6 @@
 all:
 	gcc -o control control.c
+	gcc -o write write.c
 
 c: all
 	./control -c

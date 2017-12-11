@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define KEY 1729
 #define FILE "secrets"
@@ -19,13 +20,14 @@
   2017 - 12 - 11
 
   below code is from charles' repo
+
+  removing shared memory seems to return an error (errno: invalid arguments) and i'm not sure why it's doin it
+  everything else seems to work though
 */
 
 // helper for create flag; creates the semaphore if not already created
 void create() {
   int sid = semget(KEY, 1, IPC_CREAT | IPC_EXCL | 0644);
-  int shmd = shmget(KEY, 128 * sizeof(char), IPC_CREAT | IPC_EXCL);
-  perror("shmget");
 
   // check for error
   if(sid == -1){
@@ -35,6 +37,12 @@ void create() {
 
   semctl(sid, 0, SETVAL, 1);
   printf("semaphore created: %d\n", sid);
+  int shmd = shmget(KEY, 128 * sizeof(char), IPC_CREAT | IPC_EXCL | 0644);
+  perror("shmget");
+  char* mem = shmat(shmd, 0, 0);
+  mem = "";
+  shmdt(mem);
+  perror("shmat");
   printf("shared memory created: %d\n", shmd);
   printf("value set: %d\n", semctl(sid, 0, SETVAL, 1));
 
@@ -61,16 +69,27 @@ void view() {
 
 // helper for remove flag
 void rem() {
-  // remove semaphore
-  int sid = semget(KEY, 1, 0644);
-  printf("semaphore removed: %d\n", semctl(sid, 0, IPC_RMID));
-  // remove shared memory
-  int shmd = shmget(KEY, 128 * sizeof(char), 0644);
-  int shm_val = shmctl(shmd, IPC_RMID, 0);
-  printf("shared memory removed\n");
+  int sem_desc, mem_desc;
+  // printf("Removing semaphore\n");
+  sem_desc = semget(KEY, 1, 0);
+  int sem_val = semctl(sem_desc, 0, IPC_RMID);
+  if (sem_val < 0) {
+      printf("Initialize program first with: $ ./control -c\n");
+      return;
+  }
+  printf("Semaphore removed: %d\n", sem_desc);
+  mem_desc = shmget(KEY, sizeof(int), 0);
+  int shm_val = shmctl(mem_desc, IPC_RMID, 0);
+  printf("Shared memory segment removed\n");
   perror("shmctl");
   // remove file after showing it
-  view();
+  char buf[128];
+  printf("The Story:\n");
+  // FILE * doesn't seem to work as an initializer and stderr isn't used
+  stderr = fopen(FILE, "r");
+  // loop through and print out each line
+  while(fgets(buf, sizeof(buf), stderr))
+    printf("\t%s", buf);
   printf("Removed story: %d\n", remove(FILE));
 }
 
