@@ -41,6 +41,7 @@ int main(){
 	char lastLine[*size];
 	read(fd, lastLine, *size);
 
+	printf("Last line of the story: %s\n", lastLine);
 	printf("Put in your line:\n");
 	char input[256];
 	fgets(input, sizeof(input), stdin);
