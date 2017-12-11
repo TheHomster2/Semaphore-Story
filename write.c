@@ -8,6 +8,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define KEY 1729
 #define FILE "secrets"
@@ -15,7 +16,7 @@
 int main(){
 
 	int sid = semget(KEY, 1, 0644);
-	int shmd = shmget(KEY, 128 * sizeof(char), 0);
+	int shmd = shmget(KEY, sizeof(int), 0);
 
   if(sid == -1){
     printf("semaphore already created\n");
@@ -35,16 +36,25 @@ int main(){
     return 1;
   }
 
-	// shared memory stores last line
-  char *line = (char *) shmat(shmd, 0, 0);
+	// shared memory stores size of last line
+  int *size = (int *) shmat(shmd, 0, 0);
+	printf("%d\n", *size);
 	// perror("shmat");
-	int fd = open(FILE, O_CREAT | O_TRUNC, 0644);
+	int fd = open(FILE, O_RDWR, 0644);
+  lseek(fd, -1 * *size, SEEK_END);
+	char *line = calloc (128, sizeof(char));
+	read(fd, line, *size);
+	close(fd);
 	// get new line
 	printf("Last line of the story: %s\n", line);
-	printf("Put in your line:");
-	fgets(line, 128, stdin);
+	printf("Put in your line: ");
+	char *input;
+	fgets(input, 128, stdin);
+	printf("%s\n", input);
 	// do stuff
-	write(fd, line, 128);
+	*size = strlen(input);
+	fd = open(FILE, O_APPEND);
+	write(fd, input, 128);
 	shmdt(line);
 	person.sem_op = 1;
 	semop(sid, &person, 1);

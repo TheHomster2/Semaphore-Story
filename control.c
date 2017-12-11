@@ -37,7 +37,7 @@ void create() {
   semctl(sid, 0, SETVAL, 1);
   // perror("semctl");
   printf("semaphore created: %d\n", sid);
-  int shmd = shmget(KEY, 128 * sizeof(char), IPC_CREAT | IPC_EXCL | 0644);
+  int shmd = shmget(KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0644);
   printf("shared memory created: %d\n", shmd);
   printf("value set: %d\n", semctl(sid, 0, SETVAL, 1));
 
@@ -73,7 +73,7 @@ void rem() {
       return;
   }
   printf("Semaphore removed: %d\n", sem_desc);
-  mem_desc = shmget(KEY, 128 * sizeof(char), 0);
+  mem_desc = shmget(KEY, sizeof(int), 0);
   // perror("shmget");
   printf("Shared memory segment removed: %d\n", shmctl(mem_desc, IPC_RMID, 0));
   // perror("shmctl");
