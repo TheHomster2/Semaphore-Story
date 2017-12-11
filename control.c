@@ -58,6 +58,14 @@ void view() {
 void rem() {
   int sid = semget(KEY, 4, 0600);
   printf("Semaphore removed: %d\n", semctl(sid, 0, IPC_RMID));
+  int shmd = shmget(KEY, 4, 0600);
+  printf("Shared memory removed: %d\n", shmctl(shmd, IPC_RMID, 0));
+  char buf[256];
+  read(fd, buf, 256);
+  printf("Story: %s\n", buf);
+  close(fd);
+  remove(FILE);
+  printf("Removed story\n");
 }
 
 
