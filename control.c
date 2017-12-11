@@ -47,6 +47,10 @@ void create() {
 // helper for view flag; returns
 void view() {
   int fd = open(FILE, O_RDONLY);
+  char buf[256];
+  read(fd, buf, 256);
+  printf("Story: %s\n", buf);
+  close(fd);
 
 }
 
@@ -54,6 +58,12 @@ void view() {
 void rem() {
   int sid = semget(KEY, 4, 0600);
   printf("Semaphore removed: %d\n", semctl(sid, 0, IPC_RMID));
+  char buf[256];
+  read(fd, buf, 256);
+  printf("Story: %s\n", buf);
+  close(fd);
+  remove(FILE);
+  printf("Removed story\n");
 }
 
 
