@@ -26,6 +26,7 @@
 
 // helper for create flag; creates the semaphore if not already created
 void create() {
+  // semaphore creation
   int sid = semget(KEY, 1, IPC_CREAT | IPC_EXCL | 0644);
 
   // check for error
@@ -34,49 +35,56 @@ void create() {
     return;
   }
 
+  // semaphore val
   semctl(sid, 0, SETVAL, 1);
   // perror("semctl");
   printf("semaphore created: %d\n", sid);
+
+  // shared memory creation
   int shmd = shmget(KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0644);
   printf("shared memory created: %d\n", shmd);
   printf("value set: %d\n", semctl(sid, 0, SETVAL, 1));
 
+  // file creation
   int fd = open(FILE, O_CREAT | O_TRUNC | O_EXCL, 0644);
   close(fd);
   printf("file created:%d\n", fd);
 }
 
-// helper for view flag; returns
+// helper for view flag
 void view() {
+  // check for error
   if (semget(KEY, 1, 0)){
     printf("initialize first\n");
     return;
   }
 
+  // print out story
   char buf[128];
   printf("The Story:\n");
   // FILE * doesn't seem to work as an initializer and stderr isn't used
   stderr = fopen(FILE, "r");
-  // loop through and print out each line
   while(fgets(buf, sizeof(buf), stderr))
     printf("\t%s", buf);
 }
 
 // helper for remove flag
 void rem() {
-  int sem_desc, mem_desc;
-  // printf("Removing semaphore\n");
-  sem_desc = semget(KEY, 1, 0);
-  int sem_val = semctl(sem_desc, 0, IPC_RMID);
-  if (sem_val < 0) {
+  // removing semaphore
+  int sid = semget(KEY, 1, 0);
+  //check for error
+  if (semctl(sid, 0, IPC_RMID){
       printf("Initialize program first with: $ ./control -c\n");
       return;
   }
-  printf("Semaphore removed: %d\n", sem_desc);
-  mem_desc = shmget(KEY, sizeof(int), 0);
+  printf("Semaphore removed: %d\n", sid);
+
+  // removing shared memory
+  shmd = shmget(KEY, sizeof(int), 0);
   // perror("shmget");
-  printf("Shared memory segment removed: %d\n", shmctl(mem_desc, IPC_RMID, 0));
+  printf("Shared memory segment removed: %d\n", shmctl(shmd, IPC_RMID, 0));
   // perror("shmctl");
+
   // remove file after showing it
   char buf[128];
   printf("The Story:\n");
@@ -90,7 +98,7 @@ void rem() {
 
 
 int main(int c, const char *args[]) {
-  // loop through args and check for flags and run corresponding helper
+  // loop through args and check for first flag
   int i;
   for(i = 0; i < c; i ++){
     if (strcmp(args[i], "-c") == 0){

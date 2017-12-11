@@ -13,16 +13,20 @@
 #define KEY 1729
 #define FILE "secrets"
 
+/*
+	class header in control.c
+*/
 int main(){
-
+	// get semaphore
 	int sid = semget(KEY, 1, 0644);
-	int shmd = shmget(KEY, sizeof(int), 0);
 
+	// check for error
   if(sid == -1){
-    printf("semaphore already created\n");
+    printf("run ./control first\n");
     return 1;
 	}
 
+	// semaphore things
 	printf("Please wait...Accessing resources...\n");
 	struct sembuf person;
 	person.sem_num = 0;
@@ -31,31 +35,34 @@ int main(){
 	semop(sid, &person, 1);
 	printf("Done!\n");
 
-  if(shmd == -1){
-    printf("shared memory already created\n");
-    return 1;
-  }
-
-	// shared memory stores size of last line
+	// get last line
+	int shmd = shmget(KEY, sizeof(int), 0);
   int *size = (int *) shmat(shmd, 0, 0);
-	printf("%d\n", *size);
+	// printf("%d\n", *size);
 	// perror("shmat");
-	int fd = open(FILE, O_RDWR, 0644);
+	int fd = open(FILE, O_RDONLY, 0644);
   lseek(fd, -1 * *size, SEEK_END);
 	char *line = calloc (128, sizeof(char));
 	read(fd, line, *size);
+	// perror("read");
 	close(fd);
+
 	// get new line
 	printf("Last line of the story: %s\n", line);
 	printf("Put in your line: ");
-	char *input;
+	char input[128];
 	fgets(input, 128, stdin);
-	printf("%s\n", input);
-	// do stuff
+	// perror("fgets");
+	// printf("%sAAAAA\n", input);
+	free(line);
+
+	// do stuff with the things
 	*size = strlen(input);
-	fd = open(FILE, O_APPEND);
-	write(fd, input, 128);
-	shmdt(line);
+	int fd2 = open(FILE, O_WRONLY | O_APPEND);
+	// perror("open");
+	write(fd2, input, strlen(input));
+	// perror("write");
 	person.sem_op = 1;
 	semop(sid, &person, 1);
+	close(fd2);
 }
