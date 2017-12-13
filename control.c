@@ -73,14 +73,14 @@ void rem() {
   // removing semaphore
   int sid = semget(KEY, 1, 0);
   //check for error
-  if (semctl(sid, 0, IPC_RMID){
+  if (semctl(sid, 0, IPC_RMID)){
       printf("Initialize program first with: $ ./control -c\n");
       return;
   }
   printf("Semaphore removed: %d\n", sid);
 
   // removing shared memory
-  shmd = shmget(KEY, sizeof(int), 0);
+  int shmd = shmget(KEY, sizeof(int), 0);
   // perror("shmget");
   printf("Shared memory segment removed: %d\n", shmctl(shmd, IPC_RMID, 0));
   // perror("shmctl");
